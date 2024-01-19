@@ -89,7 +89,18 @@ mod system_clipboard {
 
     impl SystemClipboard {
         pub fn new() -> Self {
-            let cb = Arboard::new().unwrap();
+            const RETRYS: usize = 10;
+            let mut counter = 0;
+            let cb = loop {
+                if let Ok(clipboard) = Arboard::new() {
+                    break clipboard;
+                }
+                counter += 1;
+                if counter > RETRYS {
+                    panic!("Can't get system clipboard");
+                }
+                std::thread::sleep(std::time::Duration::from_millis(100));
+            };
             SystemClipboard {
                 cb,
                 local_copy: String::new(),
